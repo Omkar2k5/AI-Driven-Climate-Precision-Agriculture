@@ -3,7 +3,7 @@
   import { Cloud, Thermometer, Wind, Droplets, Sun } from 'lucide-react';
 
   // Note: Replace with your OpenWeatherMap API key
-  const API_KEY = '57676ee4d30d2f001f6abb9c6e90c6e2';
+  const API_KEY = '';
 
   interface WeatherData {
     temperature: number;
