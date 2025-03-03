@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { Leaf } from 'lucide-react';
 import axios from 'axios';
 import soilNPKValues from '../values/soilNPKValues';
+import { useLanguage } from '../contexts/LanguageContext';
+import { LanguageSelector } from '../components/LanguageSelector';
 
 // Note: Replace with your OpenWeatherMap API key
-const API_KEY = '';
+const API_KEY = '57676ee4d30d2f001f6abb9c6e90c6e2';
 
 type SoilType = keyof typeof soilNPKValues;
 
@@ -14,8 +16,8 @@ type Errors = {
   waterPh: string;
 };
 
-
 const CropRecommendation = () => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     nitrogen: '',
     phosphorus: '',
@@ -28,7 +30,7 @@ const CropRecommendation = () => {
     soilType: 'clay' as SoilType,
   });
 
-  const [recommendation, setRecommendation] = useState<string | null>(null);
+  const [recommendation, setRecommendation] = useState<{crop: string; fertilizer: string} | null>(null);
   const [errors, setErrors] = useState<Errors>({
     humidity: '',
     waterPh: '',
@@ -89,12 +91,12 @@ const CropRecommendation = () => {
     const newErrors: Errors = { humidity: '', waterPh: '' };
 
     if (parseFloat(formData.humidity) < 0 || parseFloat(formData.humidity) > 100) {
-      newErrors.humidity = 'Humidity must be between 0 and 100.';
+      newErrors.humidity = t.cropRecommendation.validationErrors.humidity;
       valid = false;
     }
 
     if (parseFloat(formData.waterPh) < 0 || parseFloat(formData.waterPh) > 14) {
-      newErrors.waterPh = 'Water pH must be between 0 and 14.';
+      newErrors.waterPh = t.cropRecommendation.validationErrors.waterPh;
       valid = false;
     }
 
@@ -122,10 +124,13 @@ const CropRecommendation = () => {
       const response = await axios.post('http://localhost:5000/predict_crop', payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-      setRecommendation(response.data.prediction);
+      setRecommendation({
+        crop: response.data.prediction,
+        fertilizer: response.data.fertilizer
+      });
     } catch (error) {
       console.error('Error fetching prediction:', error);
-      setRecommendation('Error fetching data');
+      setRecommendation(null);
     }
   };
 
@@ -146,17 +151,32 @@ const CropRecommendation = () => {
   }, [weatherData]);
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="max-w-4xl mx-auto">
+    <div className="relative min-h-screen" style={{
+      backgroundImage: "url('/bckgnd.jpg')",
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
+    }}>
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.85)',
+          zIndex: -1,
+        }}
+      />
+      <div className="max-w-6xl mx-auto relative p-8">
+        <LanguageSelector />
+      
       <div className="text-center mb-10">
         <Leaf className="w-16 h-16 text-green-600 mx-auto mb-4" />
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">Crop Recommendation</h1>
-        <p className="text-gray-600">Enter environmental parameters to get AI-powered crop suggestions</p>
+        <h1 className="text-4xl font-bold text-gray-800 mb-4">{t.cropRecommendation.title}</h1>
+        <p className="text-gray-600">{t.cropRecommendation.subtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8">
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-2 md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">Soil Type</label>
+            <label className="block text-sm font-medium text-gray-700">{t.cropRecommendation.soilType}</label>
             <select
               name="soilType"
               value={formData.soilType}
@@ -172,11 +192,11 @@ const CropRecommendation = () => {
             </select>
           </div>
 
-          {[ 
-            { name: 'temperature', label: 'Temperature (°C)', type: 'number' },
-            { name: 'humidity', label: 'Humidity (%)', type: 'number' },
-            { name: 'waterPh', label: 'Water pH', type: 'number' },
-            { name: 'rainfall', label: 'Rainfall (mm)', type: 'number' },
+          {[
+            { name: 'temperature', label: t.cropRecommendation.temperature, type: 'number' },
+            { name: 'humidity', label: t.cropRecommendation.humidity, type: 'number' },
+            { name: 'waterPh', label: t.cropRecommendation.waterPh, type: 'number' },
+            { name: 'rainfall', label: t.cropRecommendation.rainfall, type: 'number' },
           ].map((field) => (
             <div key={field.name} className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">{field.label}</label>
@@ -202,7 +222,7 @@ const CropRecommendation = () => {
               onClick={handleAutoFetch}
               className="bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 transition-colors mt-4"
             >
-              Auto fetch temp and humidity
+              {t.cropRecommendation.autoFetch}
             </motion.button>
           </div>
         </div>
@@ -213,7 +233,7 @@ const CropRecommendation = () => {
           type="submit"
           className="w-full mt-8 bg-green-600 text-white py-3 px-6 rounded-md hover:bg-green-700 transition-colors"
         >
-          Get Crop Recommendations
+          {t.cropRecommendation.getRecommendations}
         </motion.button>
       </form>
 
@@ -226,19 +246,24 @@ const CropRecommendation = () => {
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
           <h2 className="text-3xl font-extrabold text-green-800 mb-4 font-sans tracking-wide">
-            Recommended Crop
+            {t.cropRecommendation.recommendedCrop}
           </h2>
-          <p className="text-gray-600 text-2xl font-serif">{recommendation}</p>
+          <p className="text-gray-600 text-2xl font-serif">{recommendation?.crop}</p>
+          <div className="mt-4">
+            <h3 className="text-2xl font-bold text-green-800 mb-2">{t.cropRecommendation.RecommendaedFertizers}</h3>
+            <p className="text-gray-600 text-xl font-serif">{recommendation?.fertilizer}</p>
+          </div>
         </motion.div>
       )}
 
       <div className="mt-8 bg-green-50 rounded-xl p-6">
-        <h2 className="text-xl font-semibold text-green-800 mb-4">How it Works</h2>
+        <h2 className="text-xl font-semibold text-green-800 mb-4">{t.cropRecommendation.howItWorks}</h2>
         <p className="text-gray-600">
-          Our AI model analyzes environmental parameters like nitrogen, phosphorus, potassium, temperature, humidity, water pH, rainfall, and soil type to provide the best crop recommendations for your region.
+          {t.cropRecommendation.howItWorksDescription}
         </p>
       </div>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 

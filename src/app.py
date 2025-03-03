@@ -63,6 +63,19 @@ def predict_crop():
             return jsonify({"prediction": predicted_crop})
         else:
             return jsonify({"error": "Model does not have a 'predict' method."})
+            
+        if fertilizer_model and fertilizer_scaler:
+            npk_features = np.array([[data['N'], data['P'], data['K']]])
+            npk_features_scaled = fertilizer_scaler.transform(npk_features)
+            fertilizer_prediction = fertilizer_model.predict(npk_features_scaled)
+            fertilizer_mapping = {0: 'Urea', 1: 'DAP', 2: 'NPK', 3: 'Organic Fertilizer'}
+            recommended_fertilizer = fertilizer_mapping.get(fertilizer_prediction[0], "Unknown")
+            print(f"🌱 Recommended Fertilizer: {recommended_fertilizer}")
+
+        return jsonify({
+            "prediction": predicted_crop,
+            "fertilizer": recommended_fertilizer
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)})

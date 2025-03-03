@@ -5,22 +5,25 @@ import Home from './pages/Home';
 import CropRecommendation from './pages/CropRecommendation';
 import WaterQuality from './pages/WaterQuality';
 import WeatherUpdates from './pages/WeatherUpdates';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-        <Navbar />
-        <div className="container mx-auto px-4 py-8">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/crop-recommendation" element={<CropRecommendation />} />
-            <Route path="/water-quality" element={<WaterQuality />} />
-            <Route path="/weather-updates" element={<WeatherUpdates />} />
-          </Routes>
+    <LanguageProvider>
+      <Router>
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+          <Navbar />
+          <div className="container mx-auto px-4 py-8">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/crop-recommendation" element={<CropRecommendation />} />
+              <Route path="/water-quality" element={<WaterQuality />} />
+              <Route path="/weather-updates" element={<WeatherUpdates />} />
+            </Routes>
+          </div>
         </div>
-      </div>
-    </Router>
+      </Router>
+    </LanguageProvider>
   );
 }
 
